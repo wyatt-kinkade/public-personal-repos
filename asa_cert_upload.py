@@ -9,11 +9,8 @@
 import requests
 import json
 import certbot.main
-from pprint import pprint
 from datetime import date
 from cryptography import x509
-from cryptography.hazmat.backends import default_backend
-import base64
 import ssl
 import urllib3
 import random
@@ -66,7 +63,7 @@ def compare_certs():
   time_left = expiry_date.date() - today_date
 
   compare_certs.days_left = int(time_left.days)
-  print(compare_certs.days_left)
+  print('Certificate has ' + str(compare_certs.days_left) + ' days remaining')
 
 def provision_cert(email, domain):
   certbot.main.main([
@@ -159,42 +156,42 @@ def apply_trustpoint (ip, Token):
 if not os.path.exists(cert_path):
     print('No Existing Certificate Found, Creating New Certificate...\n')
     #Creates Cert
-    #provision_cert(email, domain)
+    provision_cert(email, domain)
 
     #Pulls token from ASA for Authentication
-    #Token = get_token(ip, username, password)
+    Token = get_token(ip, username, password)
     #Adds Token to Header
-    #Header = {
-    #        'X-Auth-Token': Token,
-    #        'Content-Type':"application/json"   }
+    Header = {
+            'X-Auth-Token': Token,
+            'Content-Type':"application/json"   }
 
     #Uploads Certificate
-    #upload_certificate(ip, Token, domain)
+    upload_certificate(ip, Token, domain)
     #Applies Certificate to Interface
-    #apply_trustpoint(ip, Token)
+    apply_trustpoint(ip, Token)
 
     #Deletes Token upon completion
-    #del_token(ip, Token)
+    del_token(ip, Token)
 else:
     #check if cert can be renewed
     compare_certs()
     if compare_certs.days_left < 30:
         print('Certificate Requires Renewal, Beginning Renewal Process...\n')
-        #provision_cert(email, domain)
+        provision_cert(email, domain)
 
         #Pulls token from ASA for Authentication
-        #Token = get_token(ip, username, password)
+        Token = get_token(ip, username, password)
         #Adds Token to Header
-        #Header = {
-        #        'X-Auth-Token': Token,
-        #        'Content-Type':"application/json"   }
+        Header = {
+                'X-Auth-Token': Token,
+                'Content-Type':"application/json"   }
 
         #Uploads Certificate
-        #upload_certificate(ip, Token, domain)
+        upload_certificate(ip, Token, domain)
         #Applies Certificate to Interface
-        #apply_trustpoint(ip, Token)
+        apply_trustpoint(ip, Token)
 
         #Deletes Token upon completion
-        #del_token(ip, Token)
+        del_token(ip, Token)
     else:
-        print('Certificate Still Valid, Ending script')
+        print('Certificate cannot yet be updated, Ending script')
