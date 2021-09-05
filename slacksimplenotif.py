@@ -1,13 +1,14 @@
+#Literally just built to pass Standard Input into Slack
 #!/usr/bin/env python3
 
 import slack
 import os
 import sys
 
-SLACK_TOKEN='xoxb-11717412758-1553895325171-PmTI8rkR4KIrgAUZMKZ9fNJQ'
+SLACK_TOKEN=''
 
 mystring = sys.stdin.read()
-#mystring = 'gamer'
+#mystring = 'test'
 
 client = slack.WebClient(token=SLACK_TOKEN)
 
