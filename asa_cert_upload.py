@@ -1,5 +1,8 @@
 #!/usr/bin/python3
-# Certs usually cost money, this is my cheap/lazy solution to not pay people for my VPN's certs
+# Certs usually cost money, this is my cheap/lazy solution to not pay people for my ASA's certs
+
+# I'd found another solution using acme.sh which I did like too especially since it's already written in shell, I might post it later given that I edited my copy
+# but this has the advantage of python being available on windows although openssl is currently needed, so it needs to be manually installed too
 
 import requests
 import json
@@ -8,7 +11,6 @@ from pprint import pprint
 from datetime import date
 import ssl
 import urllib3
-import getpass
 import random
 import string
 import os
@@ -21,24 +23,17 @@ today_date = date.today()
 certname = "asa-ssl-python-" + str(today_date)
 available_chars = string.ascii_letters + string.digits
 pfx_pass = ''.join((random.choice(available_chars) for i in range(10)))
+#obviously this needs to be changed and configured accordingly, if you use another DNS provider you will need to setup certbot accordingly
 cf_ini = "/home/janny/cloudflare_api_token.ini"
-# Only thing I'd need would be the certdata for this from the ACME functionality, I would need the data converted to PFX format so it will need to have the pfx pass variable added when converting this
-# certdata = 
 
-#User Input, yes, getpass is better, having some minor issues though with it, I'll bother with that another point
+#User Input, yes, getpass is better, but this is a demo more than anything else
+#For production use these values should be hard coded and the script should be set to a cronjob
 ip = input("Please Enter the IP or FQDN of the host: \n")
 username = input("Please Enter the Username: \n")
 password = input("Please Enter the Password: \n")
 extintf = input("Please Enter the name of the External Interface: \n")
 email = input("Please Enter an email used for this certificate: \n")
 domain = input("Please Enter the FQDN of the domain name of the outside IP for the ASA: \n")
-
-#
-def read_and_delete_file(path):
-  with open(path, 'r') as file:
-    contents = file.read()
-  os.remove(path)
-  return contents
 
 def provision_cert(email, domain):
   certbot.main.main([
@@ -59,12 +54,7 @@ def provision_cert(email, domain):
   key_path = path + 'privkey.pem'
   cert_path = path + 'cert.pem'
   chain_path = path + 'chain.pem'
-  #return {
-  #  'private_key': read_and_delete_file(path + 'privkey.pem'),
-  #  'certificate_with_chain': read_and_delete_file(path + 'fullchain.pem')
-  #}
   os.system('openssl pkcs12 -export -out ' + pfx_path + ' -inkey ' + key_path + ' -in ' + cert_path + ' -certfile ' + chain_path + ' -password pass:' + pfx_pass)
-
 
 #Generates Token
 def get_token(ip, username, password):
@@ -140,11 +130,6 @@ def apply_trustpoint (ip, Token):
 
 #Done with Functions, time to have fun
 provision_cert(email, domain)
-
-#I will eventually bother with trying to take a stab at using cryptography for this...
-#The below line is more of a note for me to remain aware of
-#cryptography.hazmat.primitives.serialization.pkcs12.serialize_key_and_certificates(key, cert, cas, encryption_algorithm)
-
 
 #Pulls token from ASA for Authentication
 Token = get_token(ip, username, password)
