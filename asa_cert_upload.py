@@ -18,9 +18,9 @@ ssl._create_default_https_context = ssl._create_unverified_context
 headers = {'Content-Type': 'application/json'}
 urllib3.disable_warnings()
 today_date = date.today()
-certname = "asa-ssl-python-" + str(today_date)
 available_chars = string.ascii_letters + string.digits
 pfx_pass = ''.join((random.choice(available_chars) for i in range(10)))
+certname = "asa-ssl-python-" + str(today_date) + pfx_pass
 cf_ini = "/home/janny/cloudflare_api_token.ini"
 # Only thing I'd need would be the certdata for this from the ACME functionality, I would need the data converted to PFX format so it will need to have the pfx pass variable added when converting this
 # certdata = 
