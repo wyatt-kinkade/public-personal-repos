@@ -4,6 +4,8 @@
 # I'd found another solution using acme.sh which I did like too especially since it's already written in shell, I might post it later given that I edited my copy
 # but this has the advantage of python being available on windows although openssl is currently needed, so it needs to be manually installed too
 
+#I still need to sort out logic for this to figure out if the certificate has less than 30 days left and needs renewed
+
 import requests
 import json
 import certbot.main
