@@ -1,11 +1,16 @@
 #!/usr/bin/python3
 # Certs usually cost money, this is my cheap/lazy solution to not pay people for my ASA's certs
 
+# Requirements
+# I only had to install the following, but there might be more on your systems
+# certbot >= 1.18.0
+# certbot-dns-cloudflare >= 1.18.0
+# cryptography >= 3.0.0
+
+# openssl binary
+
 # I'd found another solution using acme.sh which I did like too especially since it's already written in shell, I might post it later given that I edited my copy
-# but this has the advantage of python being available on windows although openssl is currently needed, so it needs to be manually installed too
-
-#I still need to sort out logic for this to figure out if the certificate has less than 30 days left and needs renewed
-
+# but this has the advantage of python being available on windows as well as openssl.
 import requests
 import json
 import certbot.main
@@ -25,7 +30,7 @@ today_date = date.today()
 certname = "asa-ssl-python-" + str(today_date)
 available_chars = string.ascii_letters + string.digits
 pfx_pass = ''.join((random.choice(available_chars) for i in range(10)))
-#obviously this needs to be changed and configured accordingly, if you use another DNS provider you will need to setup certbot accordingly
+#Obviously this needs to be changed and configured accordingly, if you use another DNS provider you will need to setup certbot accordingly and adjust the script accordingly
 cf_ini = "/home/janny/cloudflare_api_token.ini"
 
 #User Input, yes, getpass is better for the password, but this is a demo more than anything else
@@ -71,7 +76,7 @@ def provision_cert(email, domain):
     '-n',                                   # Run in non-interactive mode
     '--agree-tos',                          # Agree to the terms of service,
     '--email', email,                       # Email
-    '--dns-cloudflare',                     # Use dns challenge with Cloudflare
+    '--dns-cloudflare',                     # Use dns challenge with Cloudflare if you use another DNS prodvider this needs to be changed and configured accordingly, if you use another DNS provider you will need to setup certbot accordingly and adjust the script accordingly
     '--dns-cloudflare-credentials', cf_ini,                     # Use dns challenge with Cloudflare
     '-d', domain,                          # Domain to provision certs for
     '--config-dir', '/tmp/config-dir/',       # Override directory paths so script doesn't have to be run as root
