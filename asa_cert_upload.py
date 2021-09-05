@@ -11,6 +11,9 @@ import json
 import certbot.main
 from pprint import pprint
 from datetime import date
+from cryptography import x509
+from cryptography.hazmat.backends import default_backend
+import base64
 import ssl
 import urllib3
 import random
@@ -28,14 +31,42 @@ pfx_pass = ''.join((random.choice(available_chars) for i in range(10)))
 #obviously this needs to be changed and configured accordingly, if you use another DNS provider you will need to setup certbot accordingly
 cf_ini = "/home/janny/cloudflare_api_token.ini"
 
-#User Input, yes, getpass is better, but this is a demo more than anything else
+#User Input, yes, getpass is better for the password, but this is a demo more than anything else
 #For production use these values should be hard coded and the script should be set to a cronjob
-ip = input("Please Enter the IP or FQDN of the host: \n")
-username = input("Please Enter the Username: \n")
-password = input("Please Enter the Password: \n")
-extintf = input("Please Enter the name of the External Interface: \n")
-email = input("Please Enter an email used for this certificate: \n")
-domain = input("Please Enter the FQDN of the domain name of the outside IP for the ASA: \n")
+#ip = input("Please Enter the IP or FQDN of the host: \n")
+#username = input("Please Enter the Username: \n")
+#password = input("Please Enter the Password: \n")
+#extintf = input("Please Enter the name of the External Interface: \n")
+#email = input("Please Enter an email used for this certificate: \n")
+#domain = input("Please Enter the FQDN of the domain name of the outside IP for the ASA: \n")
+
+ip = "192.168.100.3"
+username = "hometestadm"
+password = "S@vink0v"
+extintf = "outside"
+email = "wyatt@wyattkinkade.com"
+domain = "vpn.wyattkinkade.com"
+
+#Assigning more variables for use later
+path = '/tmp/config-dir/live/' + domain + '/'
+pfx_path = path + 'cert.pfx'
+key_path = path + 'privkey.pem'
+cert_path = path + 'cert.pem'
+chain_path = path + 'chain.pem'
+
+def compare_certs():
+  with open(cert_path, "rb") as f:
+      cert_raw = f.read()
+      #print(cert_raw)
+  cert_info = x509.load_pem_x509_certificate(cert_raw)
+  expiry_date = cert_info.not_valid_after
+  #print(expiry_date.date())
+  #print(today_date)
+
+  time_left = expiry_date.date() - today_date
+
+  compare_certs.days_left = int(time_left.days)
+  print(compare_certs.days_left)
 
 def provision_cert(email, domain):
   certbot.main.main([
@@ -51,11 +82,6 @@ def provision_cert(email, domain):
     '--logs-dir', '/tmp/logs-dir/',
   ])
   #I'm leaving this commented out and directly calling openssl for now... I'll eventually start calling cryptography, I just want a handle on this for now...
-  path = '/tmp/config-dir/live/' + domain + '/'
-  pfx_path = path + 'cert.pfx'
-  key_path = path + 'privkey.pem'
-  cert_path = path + 'cert.pem'
-  chain_path = path + 'chain.pem'
   os.system('openssl pkcs12 -export -out ' + pfx_path + ' -inkey ' + key_path + ' -in ' + cert_path + ' -certfile ' + chain_path + ' -password pass:' + pfx_pass)
 
 #Generates Token
@@ -85,8 +111,6 @@ def del_token(ip, Token):
 # Provide Certificate to ASA
 def upload_certificate (ip, Token, domain):
     urlpath = '/api/certificate/identity'
-    path = '/tmp/config-dir/live/' + domain + '/'
-    pfx_path = path + 'cert.pfx'
     os.system("echo -----BEGIN PKCS12----- > /tmp/" + domain + certname )
     os.system("openssl base64 -in " + pfx_path + " >> /tmp/" + domain + certname )
     os.system("echo -----END PKCS12----- >> /tmp/" + domain + certname )
@@ -131,18 +155,46 @@ def apply_trustpoint (ip, Token):
     print(parsed.get('response')[0])
 
 #Done with Functions, time to have fun
-provision_cert(email, domain)
+#Checks if Path Exists
+if not os.path.exists(cert_path):
+    print('No Existing Certificate Found, Creating New Certificate...\n')
+    #Creates Cert
+    #provision_cert(email, domain)
 
-#Pulls token from ASA for Authentication
-Token = get_token(ip, username, password)
-Header = {
-        'X-Auth-Token': Token,
-        'Content-Type':"application/json"   }
+    #Pulls token from ASA for Authentication
+    #Token = get_token(ip, username, password)
+    #Adds Token to Header
+    #Header = {
+    #        'X-Auth-Token': Token,
+    #        'Content-Type':"application/json"   }
 
-#Queries Device after a 3 second interval, wanted to avoid any big risks instead of having it execute the function every 3 seconds
+    #Uploads Certificate
+    #upload_certificate(ip, Token, domain)
+    #Applies Certificate to Interface
+    #apply_trustpoint(ip, Token)
 
-upload_certificate(ip, Token, domain)
-apply_trustpoint(ip, Token)
+    #Deletes Token upon completion
+    #del_token(ip, Token)
+else:
+    #check if cert can be renewed
+    compare_certs()
+    if compare_certs.days_left < 30:
+        print('Certificate Requires Renewal, Beginning Renewal Process...\n')
+        #provision_cert(email, domain)
 
-#Deletes Token upon completion
-del_token(ip, Token)
+        #Pulls token from ASA for Authentication
+        #Token = get_token(ip, username, password)
+        #Adds Token to Header
+        #Header = {
+        #        'X-Auth-Token': Token,
+        #        'Content-Type':"application/json"   }
+
+        #Uploads Certificate
+        #upload_certificate(ip, Token, domain)
+        #Applies Certificate to Interface
+        #apply_trustpoint(ip, Token)
+
+        #Deletes Token upon completion
+        #del_token(ip, Token)
+    else:
+        print('Certificate Still Valid, Ending script')
