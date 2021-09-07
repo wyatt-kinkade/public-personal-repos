@@ -42,13 +42,6 @@ cf_ini = "/home/janny/cloudflare_api_token.ini"
 #email = input("Please Enter an email used for this certificate: \n")
 #domain = input("Please Enter the FQDN of the domain name of the outside IP for the ASA: \n")
 
-ip = "192.168.100.3"
-username = "hometestadm"
-password = "S@vink0v"
-extintf = "outside"
-email = "wyatt@wyattkinkade.com"
-domain = "vpn.wyattkinkade.com"
-
 #Assigning more variables for use later
 path = '/tmp/config-dir/live/' + domain + '/'
 pfx_path = path + 'cert.pfx'
