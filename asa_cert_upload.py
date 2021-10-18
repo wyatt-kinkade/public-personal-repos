@@ -21,6 +21,7 @@ import urllib3
 import random
 import string
 import os
+from pathlib import Path
 
 #General Initial Variables
 ssl._create_default_https_context = ssl._create_unverified_context
@@ -30,8 +31,10 @@ today_date = date.today()
 certname = "asa-ssl-python-" + str(today_date)
 available_chars = string.ascii_letters + string.digits
 pfx_pass = ''.join((random.choice(available_chars) for i in range(10)))
+home = str(Path.home())
+
 #Obviously this needs to be changed and configured accordingly, if you use another DNS provider you will need to setup certbot accordingly and adjust the script accordingly
-cf_ini = "/home/janny/cloudflare_api_token.ini"
+cf_ini = home + "/cloudflare_api_token.ini"
 
 #User Input, yes, getpass is better for the password, but this is a demo more than anything else
 #For production use these values should be hard coded and the script should be set to a cronjob
