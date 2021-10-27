@@ -1,5 +1,5 @@
-#Literally just built to pass Standard Input into Slack
 #!/usr/bin/env python3
+#Literally just built to pass Standard Input into Slack
 
 import slack
 import os
