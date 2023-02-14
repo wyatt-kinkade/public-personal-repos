@@ -1,0 +1,10 @@
+{% for event in result %}
+<div id="zabbix-boxes">
+<a href="https://zabbix.hometest.local/tr_events.php?triggerid={{ event.objectid }}&eventid={{ event.eventid }}" target"_blank">
+<td><p>Alert: {{ event.name }} <br>
+Status:{% if event.acknowledged == "0" %} Unacknowledged {% else %} Acknowledged {% endif %} <br>
+Severity: {% if event.severity == "0" %}Unclassified{% elif event.severity == "1" %}Informational{% elif event.severity == "2" %}Warning{% elif event.severity == "3" %}Average{% elif event.severity == "4" %}High{% elif event.severity == "5" %}Disaster{% endif %}<br>
+Alert Time: {{ event.clock | int | ctime }} </p></td>
+</a>
+</div>
+{% endfor %}
